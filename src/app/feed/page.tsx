@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { Rss, Search, Heart, MessageSquare, Share2, Send, RefreshCw, Sparkles, UserCheck } from 'lucide-react';
-import Link from 'next/link';
 
 interface FeedPost {
   id: string;
@@ -32,7 +31,7 @@ const INITIAL_POSTS: FeedPost[] = [
     authorName: 'Sarah Connor',
     authorRole: 'user',
     authorEmail: 'sarah.connor@example.com',
-    content: 'Loving the clean glassmorphism UI design. The Google OAuth social sign-in via Better Auth is super fast and smooth!',
+    content: 'Loving the sleek dark mode UI design. The Google OAuth social sign-in via Better Auth is super fast and smooth!',
     createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
     likes: 22,
     commentsCount: 4,
@@ -105,9 +104,9 @@ export default function FeedPage() {
   return (
     <div className="max-w-3xl mx-auto py-4 space-y-6">
       {/* Feed Header */}
-      <section className="flex items-center justify-between flex-wrap gap-4 bg-base-200 p-6 rounded-2xl border border-base-300 shadow-lg">
+      <section className="flex items-center justify-between flex-wrap gap-4 glass-panel p-6 rounded-2xl border border-white/10 shadow-xl">
         <div>
-          <div className="badge badge-primary badge-sm gap-1 mb-2">
+          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-2">
             <Sparkles size={12} /> Community Stream
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
@@ -119,7 +118,7 @@ export default function FeedPage() {
         </div>
 
         {/* Search Input */}
-        <div className="form-control w-full sm:w-64">
+        <div className="w-full sm:w-64">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -127,27 +126,25 @@ export default function FeedPage() {
               placeholder="Search feed posts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input input-sm input-bordered pl-9 w-full text-xs"
+              className="input-premium pl-9 pr-3 py-2 w-full text-xs outline-none focus:border-indigo-500 transition-all"
             />
           </div>
         </div>
       </section>
 
       {/* Post Publisher Card */}
-      <section className="card bg-base-200 border border-indigo-500/30 p-5 shadow-xl">
+      <section className="glass-panel border border-indigo-500/30 p-5 rounded-2xl shadow-xl">
         <form onSubmit={handleCreatePost} className="space-y-3">
           <div className="flex gap-3">
-            <div className="avatar placeholder">
-              <div className="bg-indigo-600 text-white rounded-full w-9 font-bold text-xs">
-                <span>{session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}</span>
-              </div>
+            <div className="w-9 h-9 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
+              <span>{session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}</span>
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-xs text-white flex items-center gap-1.5">
                   {session?.user?.name || 'Community Member'}
                   {session?.user && (
-                    <span className="badge badge-success badge-xs gap-1 text-[10px]">
+                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                       <UserCheck size={10} /> Active
                     </span>
                   )}
@@ -163,16 +160,16 @@ export default function FeedPage() {
                 }
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
-                className="textarea textarea-bordered w-full text-xs placeholder-slate-400 resize-none"
+                className="input-premium p-3 w-full text-xs text-white placeholder:text-slate-400 resize-none outline-none focus:border-indigo-500 transition-all"
               />
 
               {/* Controls Bar */}
-              <div className="flex items-center justify-between pt-2 border-t border-base-300">
-                <span className="text-[10px] text-slate-400">Synced to Neon PostgreSQL</span>
+              <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                <span className="text-[10px] text-slate-400 font-mono">Synced to Neon PostgreSQL</span>
                 <button
                   type="submit"
                   disabled={posting || !newPostContent.trim()}
-                  className="btn btn-primary btn-sm text-xs gap-1.5"
+                  className="btn btn-primary text-xs py-1.5 px-4 rounded-xl gap-1.5"
                 >
                   {posting ? (
                     <RefreshCw size={14} className="animate-spin" />
@@ -195,19 +192,17 @@ export default function FeedPage() {
           const initial = post.authorName.charAt(0).toUpperCase();
 
           return (
-            <article key={post.id} className="card bg-base-200 border border-base-300 p-5 shadow-lg space-y-3">
+            <article key={post.id} className="glass-panel p-5 rounded-2xl shadow-lg space-y-3">
               {/* Author Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-9 font-bold text-xs">
-                      <span>{initial}</span>
-                    </div>
+                  <div className="w-9 h-9 bg-white/10 text-white rounded-full flex items-center justify-center font-bold text-xs border border-white/10">
+                    <span>{initial}</span>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-sm text-white">{post.authorName}</h4>
-                      <span className="badge badge-primary badge-outline text-[10px]">
+                      <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize">
                         {post.authorRole}
                       </span>
                     </div>
@@ -220,24 +215,24 @@ export default function FeedPage() {
               <p className="text-xs text-slate-200 leading-relaxed">{post.content}</p>
 
               {/* Footer Actions */}
-              <div className="card-actions justify-between items-center pt-3 border-t border-base-300 text-xs">
-                <div className="flex items-center gap-4 text-slate-400">
+              <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+                <div className="flex items-center gap-4 text-slate-400 font-medium">
                   <button
                     onClick={() => handleToggleLike(post.id)}
-                    className={`btn btn-ghost btn-xs gap-1.5 ${
+                    className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 transition-colors ${
                       isLiked ? 'text-rose-400 font-bold' : 'hover:text-white'
                     }`}
                   >
-                    <Heart size={14} className={isLiked ? 'fill-rose-400' : ''} />
+                    <Heart size={14} className={isLiked ? 'fill-rose-400 text-rose-400' : ''} />
                     <span>{post.likes}</span>
                   </button>
 
-                  <button className="btn btn-ghost btn-xs gap-1.5 hover:text-white">
+                  <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
                     <MessageSquare size={14} />
                     <span>{post.commentsCount} Comments</span>
                   </button>
 
-                  <button className="btn btn-ghost btn-xs gap-1.5 hover:text-white">
+                  <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
                     <Share2 size={14} />
                     <span>Share</span>
                   </button>

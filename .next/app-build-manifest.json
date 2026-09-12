@@ -16,20 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
+    "/feed/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/feed/page.js"
+    ],
     "/auth/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/auth/page.js"
     ],
-    "/ssr/page": [
+    "/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/ssr/page.js"
-    ],
-    "/feed/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/feed/page.js"
+      "static/chunks/app/profile/page.js"
     ]
   }
 }

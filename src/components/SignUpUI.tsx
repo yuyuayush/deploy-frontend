@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSession, signIn, signUp, signOut } from '@/lib/auth-client';
 import { Shield, Lock, Mail, User, CheckCircle2, AlertCircle, RefreshCw, LogOut, ArrowRight, Eye, EyeOff, Database, KeyRound, Sparkles, Zap, LockKeyhole } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface SignUpUIProps {
@@ -11,11 +11,21 @@ interface SignUpUIProps {
   redirectUrl?: string;
 }
 
-export const SignUpUI: React.FC<SignUpUIProps> = ({ defaultMode = 'signup', redirectUrl = '/feed' }) => {
+function SignUpFormContent({ defaultMode = 'signup', redirectUrl = '/feed' }: SignUpUIProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, isPending } = useSession();
-  const [mode, setMode] = useState<'signup' | 'signin'>(defaultMode);
   
+  const initialMode = (searchParams?.get('mode') as 'signup' | 'signin') || defaultMode;
+  const [mode, setMode] = useState<'signup' | 'signin'>(initialMode);
+
+  useEffect(() => {
+    const modeParam = searchParams?.get('mode');
+    if (modeParam === 'signin' || modeParam === 'signup') {
+      setMode(modeParam);
+    }
+  }, [searchParams]);
+
   // Form Fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -143,7 +153,7 @@ export const SignUpUI: React.FC<SignUpUIProps> = ({ defaultMode = 'signup', redi
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-1">{session.user.name || 'Authenticated User'}</h2>
+        <h2 className="text-2xl font-bold mb-1 text-white">{session.user.name || 'Authenticated User'}</h2>
         <p className="text-sm text-slate-300 mb-4">{session.user.email}</p>
 
         <div className="glass-panel p-3 mb-6 text-xs text-emerald-300 bg-emerald-500/10 border-emerald-500/20 flex items-center justify-center gap-2">
@@ -207,7 +217,7 @@ export const SignUpUI: React.FC<SignUpUIProps> = ({ defaultMode = 'signup', redi
         {/* Mode Switcher Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
           <div>
-            <h3 className="text-xl font-extrabold tracking-tight">
+            <h3 className="text-xl font-extrabold tracking-tight text-white">
               {mode === 'signup' ? 'Create Account' : 'Sign In'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -409,5 +419,18 @@ export const SignUpUI: React.FC<SignUpUIProps> = ({ defaultMode = 'signup', redi
         </div>
       </div>
     </div>
+  );
+}
+
+export const SignUpUI: React.FC<SignUpUIProps> = (props) => {
+  return (
+    <Suspense fallback={
+      <div className="glass-panel p-12 text-center text-slate-400 max-w-md mx-auto">
+        <RefreshCw size={32} className="animate-spin mx-auto text-indigo-400 mb-3" />
+        <p className="text-sm font-medium">Loading Auth Studio...</p>
+      </div>
+    }>
+      <SignUpFormContent {...props} />
+    </Suspense>
   );
 };

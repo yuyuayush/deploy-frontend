@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession, signOut } from '@/lib/auth-client';
-import { User, LogOut, Shield, ChevronDown, Database, ExternalLink, KeyRound } from 'lucide-react';
+import { User, LogOut, Shield, ChevronDown, Database, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 
 export const UserNavDropdown: React.FC = () => {
@@ -32,11 +32,11 @@ export const UserNavDropdown: React.FC = () => {
   if (!session?.user) {
     return (
       <Link
-        href="/auth"
-        className="btn btn-primary text-xs py-1.5 px-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 flex items-center gap-1.5 shadow-md shadow-indigo-500/20"
+        href="/auth?mode=signin"
+        className="btn btn-primary text-xs py-1.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 shadow-md shadow-indigo-500/20"
       >
         <Shield size={14} />
-        <span>Sign In / Register</span>
+        <span>Sign In</span>
       </Link>
     );
   }
@@ -58,9 +58,9 @@ export const UserNavDropdown: React.FC = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 glass-panel p-2 shadow-2xl z-50 border-indigo-500/30 text-xs">
+        <div className="absolute right-0 mt-2 w-64 glass-panel p-2 shadow-2xl z-50 border-indigo-500/30 text-xs bg-[#090d16]/95 backdrop-blur-2xl">
           {/* User Info Header */}
-          <div className="p-2.5 mb-1 border-b border-white/10 rounded-md bg-white/5">
+          <div className="p-2.5 mb-1 border-b border-white/10 rounded-lg bg-white/5">
             <p className="font-bold text-slate-200 truncate">{session.user.name || 'User'}</p>
             <p className="text-[11px] text-slate-400 truncate mt-0.5">{session.user.email}</p>
             <div className="mt-2 flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">
@@ -73,7 +73,7 @@ export const UserNavDropdown: React.FC = () => {
             <Link
               href="/profile"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 p-2 rounded hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
             >
               <User size={14} className="text-indigo-400" />
               <span>User Profile & Session</span>
@@ -82,7 +82,7 @@ export const UserNavDropdown: React.FC = () => {
             <Link
               href="/auth"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 p-2 rounded hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
             >
               <KeyRound size={14} className="text-cyan-400" />
               <span>Auth Portal Studio</span>
@@ -96,7 +96,7 @@ export const UserNavDropdown: React.FC = () => {
                 setIsOpen(false);
                 signOut();
               }}
-              className="w-full flex items-center gap-2 p-2 rounded hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 transition-colors text-left"
+              className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-rose-500/15 text-rose-400 hover:text-rose-300 transition-colors text-left"
             >
               <LogOut size={14} />
               <span>Sign Out Session</span>

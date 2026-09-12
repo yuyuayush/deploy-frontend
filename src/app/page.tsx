@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Rss, ShieldCheck, Zap, Sparkles, Code2, Users, Database, Star, Github, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Rss, ShieldCheck, Zap, Sparkles, Database } from 'lucide-react';
 import { ThreeCanvas } from '@/components/ThreeCanvas';
 import { CodeTerminal } from '@/components/CodeTerminal';
 
@@ -30,10 +30,10 @@ export default function LandingPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-center gap-4 flex-wrap pt-2">
-          <Link href="/feed" className="btn btn-primary text-xs sm:text-sm font-semibold gap-2 shadow-lg shadow-indigo-500/30 px-6 py-2.5">
+          <Link href="/feed" className="btn btn-primary text-xs sm:text-sm font-semibold gap-2 shadow-lg shadow-indigo-500/30 px-6 py-2.5 rounded-xl">
             <Rss size={16} /> Explore Feed <ArrowRight size={16} />
           </Link>
-          <Link href="/auth" className="btn btn-outline border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm font-semibold px-6 py-2.5">
+          <Link href="/auth?mode=signup" className="btn btn-outline border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm font-semibold px-6 py-2.5 rounded-xl">
             <ShieldCheck size={16} /> Get Started / Auth Portal
           </Link>
         </div>
@@ -114,7 +114,7 @@ export default function LandingPage() {
           Experience authentication built for the modern Web stack. Sign in or register to start exploring the community stream.
         </p>
         <div className="pt-2 flex items-center justify-center gap-4">
-          <Link href="/auth" className="btn btn-primary btn-md text-xs gap-2 px-6">
+          <Link href="/auth?mode=signup" className="btn btn-primary text-xs gap-2 px-6 py-2.5 rounded-xl">
             Get Started Now <ArrowRight size={14} />
           </Link>
         </div>

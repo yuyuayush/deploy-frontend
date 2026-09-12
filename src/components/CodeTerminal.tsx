@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Check, Terminal, FileCode } from 'lucide-react';
+import { Copy, Check, FileCode } from 'lucide-react';
 
 const SNIPPETS = [
   {
@@ -63,7 +63,7 @@ export const CodeTerminal: React.FC = () => {
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border border-white/10 bg-[#090b10] shadow-2xl shadow-indigo-500/10">
+    <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#090b10] shadow-2xl shadow-indigo-500/10">
       {/* Terminal Bar Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#0e1117] border-b border-white/10">
         <div className="flex items-center gap-2">

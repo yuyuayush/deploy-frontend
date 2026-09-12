@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="night">
-      <body>
+      <body className="bg-[#07080c] text-slate-100 antialiased">
         <div className="app-container">
           <Navbar />
           <main className="main-content">{children}</main>
