@@ -2,41 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from '@/lib/auth-client';
-import { Rss, Search, Heart, MessageSquare, Share2, Send, RefreshCw, Sparkles, UserCheck, AlertCircle } from 'lucide-react';
+import { Rss, Search, Heart, MessageSquare, Share2, Send, RefreshCw, Sparkles, UserCheck, AlertCircle, MessageSquarePlus } from 'lucide-react';
 import { fetchFeedPosts, publishPost, togglePostLike, FeedPost } from '@/lib/api';
-
-const DEFAULT_POSTS: FeedPost[] = [
-  {
-    id: 'post-1',
-    authorName: 'Alex Johnson',
-    authorRole: 'admin',
-    authorEmail: 'alex.johnson@example.com',
-    content: '🚀 Just integrated Three.js interactive 3D graphics on our landing page and connected Better Auth with Neon DB Postgres backend!',
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    likes: 35,
-    commentsCount: 7,
-  },
-  {
-    id: 'post-2',
-    authorName: 'Sarah Connor',
-    authorRole: 'user',
-    authorEmail: 'sarah.connor@example.com',
-    content: 'Loving the sleek dark mode UI design. The Google OAuth social sign-in via Better Auth is super fast and smooth!',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-    likes: 22,
-    commentsCount: 4,
-  },
-  {
-    id: 'post-3',
-    authorName: 'David Miller',
-    authorRole: 'editor',
-    authorEmail: 'david.miller@techcorp.io',
-    content: 'Tip: Authenticated sessions with Better Auth and Express backend pass secure HTTP-Only cookies directly over CORS.',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    likes: 48,
-    commentsCount: 12,
-  },
-];
 
 export default function FeedPage() {
   const { data: session } = useSession();
@@ -48,18 +15,14 @@ export default function FeedPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
 
-  // Load real posts from Express API & Neon PostgreSQL
+  // Load real posts exclusively from Express API & Neon PostgreSQL
   const loadPosts = async () => {
     setLoadingPosts(true);
     try {
       const apiPosts = await fetchFeedPosts();
-      if (apiPosts && apiPosts.length > 0) {
-        setPosts(apiPosts);
-      } else {
-        setPosts(DEFAULT_POSTS);
-      }
+      setPosts(apiPosts || []);
     } catch {
-      setPosts(DEFAULT_POSTS);
+      setPosts([]);
     } finally {
       setLoadingPosts(false);
     }
@@ -88,19 +51,7 @@ export default function FeedPage() {
       setPosts([created, ...posts]);
       setNewPostContent('');
     } catch (err) {
-      // Local optimistic fallback
-      const fallbackPost: FeedPost = {
-        id: `post-${Date.now()}`,
-        authorName: postData.authorName,
-        authorRole: 'user',
-        authorEmail: postData.authorEmail,
-        content: postData.content,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        commentsCount: 0,
-      };
-      setPosts([fallbackPost, ...posts]);
-      setNewPostContent('');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to publish post to backend');
     } finally {
       setPosting(false);
     }
@@ -121,7 +72,7 @@ export default function FeedPage() {
     try {
       await togglePostLike(postId, willLike);
     } catch {
-      // Keep optimistic state for seamless UX
+      // Keep optimistic UI state
     }
   };
 
@@ -233,6 +184,16 @@ export default function FeedPage() {
           <div className="glass-panel p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
             <RefreshCw size={16} className="animate-spin text-indigo-400" />
             Loading posts from Neon PostgreSQL...
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="glass-panel p-10 text-center space-y-3 border-dashed border-white/15">
+            <div className="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto border border-indigo-500/20">
+              <MessageSquarePlus size={24} />
+            </div>
+            <h3 className="text-base font-bold text-white">No Posts Yet</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              {searchQuery ? `No posts matched "${searchQuery}".` : 'Be the first to publish a post and share an update with the community!'}
+            </p>
           </div>
         ) : (
           filteredPosts.map((post) => {
