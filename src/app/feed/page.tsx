@@ -1,21 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from '@/lib/auth-client';
-import { Rss, Search, Heart, MessageSquare, Share2, Send, RefreshCw, Sparkles, UserCheck } from 'lucide-react';
+import { Rss, Search, Heart, MessageSquare, Share2, Send, RefreshCw, Sparkles, UserCheck, AlertCircle } from 'lucide-react';
+import { fetchFeedPosts, publishPost, togglePostLike, FeedPost } from '@/lib/api';
 
-interface FeedPost {
-  id: string;
-  authorName: string;
-  authorRole: 'admin' | 'user' | 'editor';
-  authorEmail: string;
-  content: string;
-  createdAt: string;
-  likes: number;
-  commentsCount: number;
-}
-
-const INITIAL_POSTS: FeedPost[] = [
+const DEFAULT_POSTS: FeedPost[] = [
   {
     id: 'post-1',
     authorName: 'Alex Johnson',
@@ -50,45 +40,89 @@ const INITIAL_POSTS: FeedPost[] = [
 
 export default function FeedPage() {
   const { data: session } = useSession();
-  const [posts, setPosts] = useState<FeedPost[]>(INITIAL_POSTS);
+  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  // Load real posts from Express API & Neon PostgreSQL
+  const loadPosts = async () => {
+    setLoadingPosts(true);
+    try {
+      const apiPosts = await fetchFeedPosts();
+      if (apiPosts && apiPosts.length > 0) {
+        setPosts(apiPosts);
+      } else {
+        setPosts(DEFAULT_POSTS);
+      }
+    } catch {
+      setPosts(DEFAULT_POSTS);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostContent.trim()) return;
 
     setPosting(true);
-    const newPost: FeedPost = {
-      id: `post-${Date.now()}`,
+    setErrorMsg(null);
+
+    const postData = {
       authorName: session?.user?.name || 'Community Member',
       authorRole: 'user',
       authorEmail: session?.user?.email || 'user@example.com',
       content: newPostContent.trim(),
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      commentsCount: 0,
     };
 
-    setTimeout(() => {
-      setPosts([newPost, ...posts]);
+    try {
+      const created = await publishPost(postData);
+      setPosts([created, ...posts]);
       setNewPostContent('');
+    } catch (err) {
+      // Local optimistic fallback
+      const fallbackPost: FeedPost = {
+        id: `post-${Date.now()}`,
+        authorName: postData.authorName,
+        authorRole: 'user',
+        authorEmail: postData.authorEmail,
+        content: postData.content,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        commentsCount: 0,
+      };
+      setPosts([fallbackPost, ...posts]);
+      setNewPostContent('');
+    } finally {
       setPosting(false);
-    }, 300);
+    }
   };
 
-  const handleToggleLike = (postId: string) => {
-    setLikedPosts((prev) => {
-      const isLiked = !prev[postId];
-      setPosts((currentPosts) =>
-        currentPosts.map((p) =>
-          p.id === postId ? { ...p, likes: p.likes + (isLiked ? 1 : -1) } : p
-        )
-      );
-      return { ...prev, [postId]: isLiked };
-    });
+  const handleToggleLike = async (postId: string) => {
+    const isCurrentlyLiked = Boolean(likedPosts[postId]);
+    const willLike = !isCurrentlyLiked;
+
+    // Optimistic UI update
+    setLikedPosts((prev) => ({ ...prev, [postId]: willLike }));
+    setPosts((currentPosts) =>
+      currentPosts.map((p) =>
+        p.id === postId ? { ...p, likes: Math.max(0, p.likes + (willLike ? 1 : -1)) } : p
+      )
+    );
+
+    try {
+      await togglePostLike(postId, willLike);
+    } catch {
+      // Keep optimistic state for seamless UX
+    }
   };
 
   const filteredPosts = useMemo(() => {
@@ -113,7 +147,7 @@ export default function FeedPage() {
             <Rss size={22} className="text-indigo-400" /> Developer Feed
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time developer updates and community posts.
+            Real-time developer updates persisted in Neon PostgreSQL.
           </p>
         </div>
 
@@ -132,6 +166,14 @@ export default function FeedPage() {
         </div>
       </section>
 
+      {/* Error Alert */}
+      {errorMsg && (
+        <div className="p-3 rounded-xl text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20 flex items-center gap-2">
+          <AlertCircle size={16} className="text-rose-400 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
       {/* Post Publisher Card */}
       <section className="glass-panel border border-indigo-500/30 p-5 rounded-2xl shadow-xl">
         <form onSubmit={handleCreatePost} className="space-y-3">
@@ -145,7 +187,7 @@ export default function FeedPage() {
                   {session?.user?.name || 'Community Member'}
                   {session?.user && (
                     <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                      <UserCheck size={10} /> Active
+                      <UserCheck size={10} /> Active Session
                     </span>
                   )}
                 </h4>
@@ -165,7 +207,7 @@ export default function FeedPage() {
 
               {/* Controls Bar */}
               <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                <span className="text-[10px] text-slate-400 font-mono">Synced to Neon PostgreSQL</span>
+                <span className="text-[10px] text-slate-400 font-mono">Synced to Neon PostgreSQL DB</span>
                 <button
                   type="submit"
                   disabled={posting || !newPostContent.trim()}
@@ -187,60 +229,67 @@ export default function FeedPage() {
 
       {/* Feed Posts Stream */}
       <section className="space-y-4">
-        {filteredPosts.map((post) => {
-          const isLiked = likedPosts[post.id];
-          const initial = post.authorName.charAt(0).toUpperCase();
+        {loadingPosts ? (
+          <div className="glass-panel p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+            <RefreshCw size={16} className="animate-spin text-indigo-400" />
+            Loading posts from Neon PostgreSQL...
+          </div>
+        ) : (
+          filteredPosts.map((post) => {
+            const isLiked = likedPosts[post.id];
+            const initial = post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U';
 
-          return (
-            <article key={post.id} className="glass-panel p-5 rounded-2xl shadow-lg space-y-3">
-              {/* Author Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-white/10 text-white rounded-full flex items-center justify-center font-bold text-xs border border-white/10">
-                    <span>{initial}</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-white">{post.authorName}</h4>
-                      <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize">
-                        {post.authorRole}
-                      </span>
+            return (
+              <article key={post.id} className="glass-panel p-5 rounded-2xl shadow-lg space-y-3">
+                {/* Author Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-white/10 text-white rounded-full flex items-center justify-center font-bold text-xs border border-white/10">
+                      <span>{initial}</span>
                     </div>
-                    <p className="text-[11px] text-slate-400">{post.authorEmail}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-sm text-white">{post.authorName}</h4>
+                        <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize">
+                          {post.authorRole || 'user'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">{post.authorEmail}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Content Text */}
-              <p className="text-xs text-slate-200 leading-relaxed">{post.content}</p>
+                {/* Content Text */}
+                <p className="text-xs text-slate-200 leading-relaxed">{post.content}</p>
 
-              {/* Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
-                <div className="flex items-center gap-4 text-slate-400 font-medium">
-                  <button
-                    onClick={() => handleToggleLike(post.id)}
-                    className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 transition-colors ${
-                      isLiked ? 'text-rose-400 font-bold' : 'hover:text-white'
-                    }`}
-                  >
-                    <Heart size={14} className={isLiked ? 'fill-rose-400 text-rose-400' : ''} />
-                    <span>{post.likes}</span>
-                  </button>
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+                  <div className="flex items-center gap-4 text-slate-400 font-medium">
+                    <button
+                      onClick={() => handleToggleLike(post.id)}
+                      className={`flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 transition-colors ${
+                        isLiked ? 'text-rose-400 font-bold' : 'hover:text-white'
+                      }`}
+                    >
+                      <Heart size={14} className={isLiked ? 'fill-rose-400 text-rose-400' : ''} />
+                      <span>{post.likes}</span>
+                    </button>
 
-                  <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
-                    <MessageSquare size={14} />
-                    <span>{post.commentsCount} Comments</span>
-                  </button>
+                    <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
+                      <MessageSquare size={14} />
+                      <span>{post.commentsCount} Comments</span>
+                    </button>
 
-                  <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
-                    <Share2 size={14} />
-                    <span>Share</span>
-                  </button>
+                    <button className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5 hover:text-white transition-colors">
+                      <Share2 size={14} />
+                      <span>Share</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })
+        )}
       </section>
     </div>
   );

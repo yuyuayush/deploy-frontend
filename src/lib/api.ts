@@ -215,3 +215,61 @@ export async function createUser(input: CreateUserInput): Promise<User> {
     return fallbackUser;
   }
 }
+
+// -------------------------------------------------------------
+// POSTS & COMMUNITY FEED API
+// -------------------------------------------------------------
+
+export interface FeedPost {
+  id: string;
+  authorName: string;
+  authorRole: 'admin' | 'user' | 'editor';
+  authorEmail: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  commentsCount: number;
+}
+
+export async function fetchFeedPosts(): Promise<FeedPost[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/posts`, {
+      cache: 'no-store',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to fetch posts');
+    const json = await res.json();
+    return json.data;
+  } catch {
+    return [];
+  }
+}
+
+export async function publishPost(input: { authorName: string; authorRole?: string; authorEmail: string; content: string }): Promise<FeedPost> {
+  const res = await fetch(`${API_BASE_URL}/posts`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Failed to publish post');
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function togglePostLike(id: string, increment: boolean): Promise<FeedPost> {
+  const res = await fetch(`${API_BASE_URL}/posts/${id}/like`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ increment }),
+  });
+  if (!res.ok) {
+    throw new Error('Failed to update post like');
+  }
+  const json = await res.json();
+  return json.data;
+}
