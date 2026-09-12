@@ -70,7 +70,10 @@ export default function FeedPage() {
     );
 
     try {
-      await togglePostLike(postId, willLike);
+      await togglePostLike(postId, willLike, {
+        likerName: session?.user?.name || 'A developer',
+        likerEmail: session?.user?.email || 'developer@example.com',
+      });
     } catch {
       // Keep optimistic UI state
     }

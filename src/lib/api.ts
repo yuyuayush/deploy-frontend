@@ -260,12 +260,20 @@ export async function publishPost(input: { authorName: string; authorRole?: stri
   return json.data;
 }
 
-export async function togglePostLike(id: string, increment: boolean): Promise<FeedPost> {
+export async function togglePostLike(
+  id: string,
+  increment: boolean,
+  likerInfo?: { likerName?: string; likerEmail?: string }
+): Promise<FeedPost> {
   const res = await fetch(`${API_BASE_URL}/posts/${id}/like`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ increment }),
+    body: JSON.stringify({
+      increment,
+      likerName: likerInfo?.likerName,
+      likerEmail: likerInfo?.likerEmail,
+    }),
   });
   if (!res.ok) {
     throw new Error('Failed to update post like');
