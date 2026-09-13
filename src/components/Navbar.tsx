@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShieldCheck, Rss, Layers, Zap, User, UserPlus, LogIn } from 'lucide-react';
 import { UserNavDropdown } from './UserNavDropdown';
+import { NotificationCenter } from './NotificationCenter';
 import { useSession } from '@/lib/auth-client';
 
 export const Navbar = () => {
@@ -65,7 +66,10 @@ export const Navbar = () => {
           {isPending ? (
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : isAuthenticated ? (
-            <UserNavDropdown />
+            <div className="flex items-center gap-2">
+              <NotificationCenter />
+              <UserNavDropdown />
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <Link

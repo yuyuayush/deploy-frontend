@@ -1,6 +1,6 @@
 import { User, CreateUserInput, ApiSuccessResponse } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:8080/api/v1';
 
 // Initial Mock Dataset for fallback & zero-config testing
 const MOCK_USERS: User[] = [
@@ -281,3 +281,65 @@ export async function togglePostLike(
   const json = await res.json();
   return json.data;
 }
+
+// -------------------------------------------------------------
+// NOTIFICATIONS API
+// -------------------------------------------------------------
+
+export interface NotificationItem {
+  id: string;
+  recipientEmail: string;
+  senderName: string;
+  senderEmail?: string | null;
+  type: string;
+  postId?: string | null;
+  postContent?: string | null;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchNotifications(userEmail?: string): Promise<NotificationItem[]> {
+  try {
+    const url = userEmail
+      ? `${API_BASE_URL}/notifications?email=${encodeURIComponent(userEmail)}`
+      : `${API_BASE_URL}/notifications`;
+    const res = await fetch(url, {
+      cache: 'no-store',
+      credentials: 'include',
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function markNotificationAsRead(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+      method: 'PATCH',
+      credentials: 'include',
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function markAllNotificationsAsRead(userEmail: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipientEmail: userEmail }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
