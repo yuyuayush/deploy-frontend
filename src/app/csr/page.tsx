@@ -27,7 +27,7 @@ export default function CSRPage() {
 
   const fetchClientUsers = async () => {
     setLoading(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    const apiUrl = process.env.NEXT_API_URL;
     try {
       const res = await fetch(`${apiUrl}/users`, {
         credentials: 'include',

@@ -1,6 +1,6 @@
 import { User, CreateUserInput, ApiSuccessResponse } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = process.env.NEXT_API_URL;
 
 // Initial Mock Dataset for fallback & zero-config testing
 const MOCK_USERS: User[] = [
@@ -342,4 +342,65 @@ export async function markAllNotificationsAsRead(userEmail: string): Promise<boo
     return false;
   }
 }
+
+// -------------------------------------------------------------
+// WEBHOOKS & DELAYED EMAIL TESTING API
+// -------------------------------------------------------------
+
+export async function triggerTestEmail(email: string, name?: string, delayMs = 60000): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/webhooks/trigger-test-email`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, delayMs }),
+    });
+    const json = await res.json();
+    return {
+      success: res.ok,
+      message: json.message || 'Scheduled 1-minute test email',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to schedule test email',
+    };
+  }
+}
+
+export async function unsubscribeUser(email: string, reason?: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/webhooks/unsubscribe`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, reason }),
+    });
+    const json = await res.json();
+    return {
+      success: res.ok,
+      message: json.message || 'Unsubscribed successfully',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to process unsubscription',
+    };
+  }
+}
+
+export async function checkUnsubscribeStatus(email: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/webhooks/unsubscribe/check?email=${encodeURIComponent(email)}`, {
+      cache: 'no-store',
+      credentials: 'include',
+    });
+    if (!res.ok) return false;
+    const json = await res.json();
+    return Boolean(json.data?.isUnsubscribed);
+  } catch {
+    return false;
+  }
+}
+
 
