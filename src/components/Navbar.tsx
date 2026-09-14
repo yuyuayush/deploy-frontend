@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Rss, Layers, Zap, User, UserPlus, LogIn } from 'lucide-react';
+import { ShieldCheck, Rss, Layers, Zap, User, UserPlus, LogIn, Users } from 'lucide-react';
 import { UserNavDropdown } from './UserNavDropdown';
 import { NotificationCenter } from './NotificationCenter';
 import { useSession } from '@/lib/auth-client';
@@ -15,6 +15,7 @@ export const Navbar = () => {
   const navItems = [
     { label: 'Overview', path: '/', icon: Layers },
     { label: 'Feed', path: '/feed', icon: Rss },
+    { label: 'Audience & Subscribe', path: '/audience', icon: Users },
     { label: 'Auth Portal', path: '/auth', icon: ShieldCheck },
     { label: 'Session Profile', path: '/profile', icon: User },
   ];

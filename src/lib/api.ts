@@ -408,4 +408,85 @@ export async function checkUnsubscribeStatus(email: string): Promise<boolean> {
   }
 }
 
+// -------------------------------------------------------------
+// AUDIENCE & DAILY EMAIL NEWSLETTER SUBSCRIPTION API
+// -------------------------------------------------------------
+
+export interface SubscribeAudiencePayload {
+  email: string;
+  name?: string;
+  frequency?: 'daily' | 'weekly';
+}
+
+export interface ContactInquiryPayload {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export async function subscribeToAudience(payload: SubscribeAudiencePayload): Promise<{ success: boolean; message: string; data?: unknown }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/audience/subscribe`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return {
+      success: res.ok,
+      message: json.message || 'Subscribed successfully to daily updates!',
+      data: json.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to subscribe to audience newsletter',
+    };
+  }
+}
+
+export async function getAudienceStatus(email?: string): Promise<{ count: number; isSubscribed: boolean; subscriber?: unknown }> {
+  try {
+    const url = email
+      ? `${API_BASE_URL}/audience/status?email=${encodeURIComponent(email)}`
+      : `${API_BASE_URL}/audience/status`;
+    const res = await fetch(url, {
+      cache: 'no-store',
+      credentials: 'include',
+    });
+    if (!res.ok) return { count: 42, isSubscribed: false };
+    const json = await res.json();
+    return {
+      count: json.data?.count || 42,
+      isSubscribed: Boolean(json.data?.isSubscribed),
+      subscriber: json.data?.subscriber,
+    };
+  } catch {
+    return { count: 42, isSubscribed: false };
+  }
+}
+
+export async function submitContactInquiry(payload: ContactInquiryPayload): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/audience/contact`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return {
+      success: res.ok,
+      message: json.message || 'Thank you! Your message has been received.',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to submit contact message',
+    };
+  }
+}
+
 

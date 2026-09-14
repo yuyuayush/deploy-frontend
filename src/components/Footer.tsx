@@ -14,6 +14,7 @@ export const Footer = () => {
         <div className="flex items-center gap-6 text-slate-400 font-medium">
           <Link href="/" className="hover:text-white transition-colors">Overview</Link>
           <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>
+          <Link href="/audience" className="hover:text-white transition-colors">Audience & Subscribe</Link>
           <Link href="/auth" className="hover:text-white transition-colors">Auth Portal</Link>
         </div>
       </div>
