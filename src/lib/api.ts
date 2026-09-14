@@ -1,6 +1,9 @@
 import { User, CreateUserInput, ApiSuccessResponse } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_API_URL;
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_API_URL ||
+  'http://localhost:8080/api/v1';
 
 // Initial Mock Dataset for fallback & zero-config testing
 const MOCK_USERS: User[] = [
@@ -252,6 +255,8 @@ export async function publishPost(input: { authorName: string; authorRole?: stri
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
+  console.log(API_BASE_URL);
+
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.message || 'Failed to publish post');
